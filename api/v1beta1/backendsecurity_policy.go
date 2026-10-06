@@ -16,12 +16,13 @@ import (
 type BackendSecurityPolicyType string
 
 const (
-	BackendSecurityPolicyTypeAPIKey           BackendSecurityPolicyType = "APIKey"
-	BackendSecurityPolicyTypeAWSCredentials   BackendSecurityPolicyType = "AWSCredentials"
-	BackendSecurityPolicyTypeAzureAPIKey      BackendSecurityPolicyType = "AzureAPIKey"
-	BackendSecurityPolicyTypeAnthropicAPIKey  BackendSecurityPolicyType = "AnthropicAPIKey" // #nosec G101
-	BackendSecurityPolicyTypeAzureCredentials BackendSecurityPolicyType = "AzureCredentials"
-	BackendSecurityPolicyTypeGCPCredentials   BackendSecurityPolicyType = "GCPCredentials"
+	BackendSecurityPolicyTypeAPIKey            BackendSecurityPolicyType = "APIKey"
+	BackendSecurityPolicyTypeAWSCredentials    BackendSecurityPolicyType = "AWSCredentials"
+	BackendSecurityPolicyTypeAzureAPIKey       BackendSecurityPolicyType = "AzureAPIKey"
+	BackendSecurityPolicyTypeAnthropicAPIKey   BackendSecurityPolicyType = "AnthropicAPIKey" // #nosec G101
+	BackendSecurityPolicyTypeAzureCredentials  BackendSecurityPolicyType = "AzureCredentials"
+	BackendSecurityPolicyTypeGCPCredentials    BackendSecurityPolicyType = "GCPCredentials"
+	BackendSecurityPolicyTypeOpenAICredentials BackendSecurityPolicyType = "OpenAICredentials" // #nosec G101
 )
 
 // BackendSecurityPolicy specifies configuration for authentication and authorization rules on the traffic
@@ -47,12 +48,13 @@ type BackendSecurityPolicy struct {
 //
 // Only one type of BackendSecurityPolicy can be defined.
 // +kubebuilder:validation:MaxProperties=4
-// +kubebuilder:validation:XValidation:rule="self.type == 'APIKey' ? (has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey)) : true",message="When type is APIKey, only apiKey field should be set"
-// +kubebuilder:validation:XValidation:rule="self.type == 'AWSCredentials' ? (has(self.awsCredentials) && !has(self.apiKey) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey)) : true",message="When type is AWSCredentials, only awsCredentials field should be set"
-// +kubebuilder:validation:XValidation:rule="self.type == 'AzureAPIKey' ? (has(self.azureAPIKey) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey)) : true",message="When type is AzureAPIKey, only azureAPIKey field should be set"
-// +kubebuilder:validation:XValidation:rule="self.type == 'AzureCredentials' ? (has(self.azureCredentials) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey)) : true",message="When type is AzureCredentials, only azureCredentials field should be set"
-// +kubebuilder:validation:XValidation:rule="self.type == 'GCPCredentials' ? (has(self.gcpCredentials) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.anthropicAPIKey)) : true",message="When type is GCPCredentials, only gcpCredentials field should be set"
-// +kubebuilder:validation:XValidation:rule="self.type == 'AnthropicAPIKey' ? (has(self.anthropicAPIKey) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials)) : true",message="When type is AnthropicAPIKey, only anthropicAPIKey field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'APIKey' ? (has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey) && !has(self.openAICredentials)) : true",message="When type is APIKey, only apiKey field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'AWSCredentials' ? (has(self.awsCredentials) && !has(self.apiKey) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey) && !has(self.openAICredentials)) : true",message="When type is AWSCredentials, only awsCredentials field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'AzureAPIKey' ? (has(self.azureAPIKey) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey) && !has(self.openAICredentials)) : true",message="When type is AzureAPIKey, only azureAPIKey field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'AzureCredentials' ? (has(self.azureCredentials) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey) && !has(self.openAICredentials)) : true",message="When type is AzureCredentials, only azureCredentials field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'GCPCredentials' ? (has(self.gcpCredentials) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.anthropicAPIKey) && !has(self.openAICredentials)) : true",message="When type is GCPCredentials, only gcpCredentials field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'AnthropicAPIKey' ? (has(self.anthropicAPIKey) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.openAICredentials)) : true",message="When type is AnthropicAPIKey, only anthropicAPIKey field should be set"
+// +kubebuilder:validation:XValidation:rule="self.type == 'OpenAICredentials' ? (has(self.openAICredentials) && !has(self.apiKey) && !has(self.awsCredentials) && !has(self.azureAPIKey) && !has(self.azureCredentials) && !has(self.gcpCredentials) && !has(self.anthropicAPIKey)) : true",message="When type is OpenAICredentials, only openAICredentials field should be set"
 type BackendSecurityPolicySpec struct {
 	// TargetRefs are the names of the AIServiceBackend or InferencePool resources this BackendSecurityPolicy is being attached to.
 	// Attaching multiple BackendSecurityPolicies to the same resource is invalid and will result in an error
@@ -65,7 +67,7 @@ type BackendSecurityPolicySpec struct {
 
 	// Type specifies the type of the backend security policy.
 	//
-	// +kubebuilder:validation:Enum=APIKey;AWSCredentials;AzureAPIKey;AzureCredentials;GCPCredentials;AnthropicAPIKey
+	// +kubebuilder:validation:Enum=APIKey;AWSCredentials;AzureAPIKey;AzureCredentials;GCPCredentials;AnthropicAPIKey;OpenAICredentials
 	Type BackendSecurityPolicyType `json:"type"`
 
 	// APIKey is a mechanism to access a backend(s). The API key will be injected into the Authorization header.
@@ -98,6 +100,12 @@ type BackendSecurityPolicySpec struct {
 	//
 	// +optional
 	AnthropicAPIKey *BackendSecurityPolicyAnthropicAPIKey `json:"anthropicAPIKey,omitempty"`
+
+	// OpenAICredentials is a mechanism to access OpenAI backend(s) without a static API key. The controller
+	// exchanges a subject token for a short-lived access token, which is injected into the Authorization header.
+	//
+	// +optional
+	OpenAICredentials *BackendSecurityPolicyOpenAICredentials `json:"openAICredentials,omitempty"`
 
 	// CredentialOverride, when set, sources the upstream credential per-request instead of using
 	// the static credential configured above.
@@ -362,6 +370,95 @@ type BackendSecurityPolicyAnthropicAPIKey struct {
 	// ai-gateway must be given the permission to read this secret.
 	// The key of the secret should be "apiKey".
 	SecretRef *gwapiv1.SecretObjectReference `json:"secretRef"`
+}
+
+// BackendSecurityPolicyOpenAICredentials contains the supported authentication mechanisms to access OpenAI.
+type BackendSecurityPolicyOpenAICredentials struct {
+	// Organization is the OpenAI organization ID. When set, it is sent in the "OpenAI-Organization" header.
+	//
+	// +optional
+	// +kubebuilder:validation:MinLength=1
+	Organization string `json:"organization,omitempty"`
+
+	// Project is the OpenAI project ID. When set, it is sent in the "OpenAI-Project" header.
+	//
+	// +optional
+	// +kubebuilder:validation:MinLength=1
+	Project string `json:"project,omitempty"`
+
+	// TokenExchange specifies how the controller obtains an access token via OAuth 2.0 Token Exchange.
+	//
+	// +kubebuilder:validation:Required
+	TokenExchange BackendSecurityPolicyTokenExchange `json:"tokenExchange"`
+}
+
+// BackendSecurityPolicyTokenExchange specifies an OAuth 2.0 Token Exchange (RFC 8693) request.
+// The controller obtains a subject token, exchanges it at TokenURL for an access token,
+// and stores the access token in a secret, rotating it before it expires.
+//
+// https://datatracker.ietf.org/doc/html/rfc8693
+type BackendSecurityPolicyTokenExchange struct {
+	// TokenURL is the token exchange endpoint.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:XValidation:rule="isURL(self)",message="tokenURL must be a valid URL"
+	TokenURL string `json:"tokenURL"`
+
+	// SubjectTokenType is the RFC 8693 subject_token_type, identifying the format of the subject token.
+	//
+	// +optional
+	// +kubebuilder:default="urn:ietf:params:oauth:token-type:jwt"
+	// +kubebuilder:validation:MinLength=1
+	SubjectTokenType string `json:"subjectTokenType,omitempty"`
+
+	// Audience is the RFC 8693 audience parameter: the logical name of the target service.
+	//
+	// +optional
+	Audience string `json:"audience,omitempty"`
+
+	// Scopes is the list of scopes requested for the access token.
+	//
+	// +optional
+	// +kubebuilder:validation:MaxItems=16
+	Scopes []string `json:"scopes,omitempty"`
+
+	// SubjectToken specifies where the subject token is obtained from.
+	//
+	// +kubebuilder:validation:Required
+	SubjectToken BackendSecurityPolicySubjectToken `json:"subjectToken"`
+}
+
+// BackendSecurityPolicySubjectToken specifies the source of a subject token.
+// Exactly one source must be configured.
+//
+// +kubebuilder:validation:XValidation:rule="has(self.oidc) != has(self.spiffe)",message="Exactly one of oidc or spiffe must be specified"
+type BackendSecurityPolicySubjectToken struct {
+	// OIDC obtains the subject token via an OIDC client-credentials flow.
+	//
+	// +optional
+	OIDC *egv1a1.OIDC `json:"oidc,omitempty"`
+
+	// SPIFFE obtains the subject token as a JWT-SVID from the SPIFFE Workload API.
+	//
+	// +optional
+	SPIFFE *BackendSecurityPolicySPIFFE `json:"spiffe,omitempty"`
+}
+
+// BackendSecurityPolicySPIFFE specifies how to obtain a JWT-SVID from the SPIFFE Workload API.
+type BackendSecurityPolicySPIFFE struct {
+	// Audience is the audience of the requested JWT-SVID.
+	//
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	Audience string `json:"audience"`
+
+	// SocketPath is the address of the SPIFFE Workload API, e.g. "unix:///run/spire/sockets/agent.sock".
+	// When unset, the SPIFFE_ENDPOINT_SOCKET environment variable of the controller is used.
+	//
+	// +optional
+	// +kubebuilder:validation:Pattern=`^(unix|tcp)://.+`
+	SocketPath string `json:"socketPath,omitempty"`
 }
 
 // BackendSecurityPolicyCredentialOverride configures per-request credential sourcing.
