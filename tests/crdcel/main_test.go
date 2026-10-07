@@ -243,11 +243,11 @@ func TestBackendSecurityPolicies(t *testing.T) {
 		{name: "openai_oidc.yaml"},
 		{
 			name:   "openai_missing_subject_token.yaml",
-			expErr: "Exactly one of oidcExchangeToken or spiffe must be specified",
+			expErr: "Exactly one of oidcExchangeToken or spiffeJWTSVID must be specified",
 		},
 		{
 			name:   "openai_multiple_subject_tokens.yaml",
-			expErr: "Exactly one of oidcExchangeToken or spiffe must be specified",
+			expErr: "Exactly one of oidcExchangeToken or spiffeJWTSVID must be specified",
 		},
 		{
 			name:   "openai_invalid_token_url.yaml",
@@ -255,7 +255,7 @@ func TestBackendSecurityPolicies(t *testing.T) {
 		},
 		{
 			name:   "openai_invalid_socket_path.yaml",
-			expErr: "spec.openAICredentials.tokenExchange.subjectToken.spiffe.socketPath in body should match",
+			expErr: "spec.openAICredentials.tokenExchange.spiffeJWTSVID.socketPath in body should match",
 		},
 		{
 			name:   "openai_with_apikey.yaml",

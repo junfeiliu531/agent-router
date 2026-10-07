@@ -393,10 +393,16 @@ type BackendSecurityPolicyOpenAICredentials struct {
 }
 
 // BackendSecurityPolicyTokenExchange specifies an OAuth 2.0 Token Exchange (RFC 8693) request.
-// The controller obtains a subject token, exchanges it at TokenURL for an access token,
-// and stores the access token in a secret, rotating it before it expires.
+// The controller obtains a subject token from exactly one source (oidcExchangeToken or spiffeJWTSVID),
+// exchanges it at TokenURL for an access token, and stores the access token in a secret,
+// rotating it before it expires.
+//
+// TokenURL, SubjectTokenType, Audience and Scopes are parameters of the exchange request and apply
+// to either subject token source.
 //
 // https://datatracker.ietf.org/doc/html/rfc8693
+//
+// +kubebuilder:validation:XValidation:rule="has(self.oidcExchangeToken) != has(self.spiffeJWTSVID)",message="Exactly one of oidcExchangeToken or spiffeJWTSVID must be specified"
 type BackendSecurityPolicyTokenExchange struct {
 	// TokenURL is the token exchange endpoint.
 	//
@@ -406,48 +412,41 @@ type BackendSecurityPolicyTokenExchange struct {
 	TokenURL string `json:"tokenURL"`
 
 	// SubjectTokenType is the RFC 8693 subject_token_type, identifying the format of the subject token.
+	// Use "urn:ietf:params:oauth:token-type:access_token" when the OIDC provider returns an opaque access token.
 	//
 	// +optional
 	// +kubebuilder:default="urn:ietf:params:oauth:token-type:jwt"
 	// +kubebuilder:validation:MinLength=1
 	SubjectTokenType string `json:"subjectTokenType,omitempty"`
 
-	// Audience is the RFC 8693 audience parameter: the logical name of the target service.
+	// Audience is the RFC 8693 audience parameter: the logical name of the service the
+	// exchanged access token is intended for. It is unrelated to the audience of the subject token.
 	//
 	// +optional
 	Audience string `json:"audience,omitempty"`
 
-	// Scopes is the list of scopes requested for the access token.
+	// Scopes is the list of scopes requested for the exchanged access token. They are unrelated to
+	// the scopes requested from the OIDC provider for the subject token.
 	//
 	// +optional
 	// +kubebuilder:validation:MaxItems=16
 	Scopes []string `json:"scopes,omitempty"`
 
-	// SubjectToken specifies where the subject token is obtained from.
-	//
-	// +kubebuilder:validation:Required
-	SubjectToken BackendSecurityPolicySubjectToken `json:"subjectToken"`
-}
-
-// BackendSecurityPolicySubjectToken specifies the source of a subject token.
-// Exactly one source must be configured.
-//
-// +kubebuilder:validation:XValidation:rule="has(self.oidcExchangeToken) != has(self.spiffe)",message="Exactly one of oidcExchangeToken or spiffe must be specified"
-type BackendSecurityPolicySubjectToken struct {
-	// OIDCExchangeToken obtains the subject token via an OIDC client-credentials flow.
+	// OIDCExchangeToken obtains the subject token from an OIDC provider via the client-credentials flow.
 	//
 	// +optional
 	OIDCExchangeToken *BackendSecurityPolicyOIDC `json:"oidcExchangeToken,omitempty"`
 
-	// SPIFFE obtains the subject token as a JWT-SVID from the SPIFFE Workload API.
+	// SPIFFEJWTSVID obtains the subject token as a JWT-SVID from the SPIFFE Workload API.
 	//
 	// +optional
-	SPIFFE *BackendSecurityPolicySPIFFE `json:"spiffe,omitempty"`
+	SPIFFEJWTSVID *BackendSecurityPolicySPIFFEJWTSVID `json:"spiffeJWTSVID,omitempty"`
 }
 
-// BackendSecurityPolicySPIFFE specifies how to obtain a JWT-SVID from the SPIFFE Workload API.
-type BackendSecurityPolicySPIFFE struct {
-	// Audience is the audience of the requested JWT-SVID.
+// BackendSecurityPolicySPIFFEJWTSVID specifies how to obtain a JWT-SVID from the SPIFFE Workload API.
+type BackendSecurityPolicySPIFFEJWTSVID struct {
+	// Audience is the audience ("aud" claim) of the requested JWT-SVID. The token exchange endpoint
+	// validates it, so it must match the audience that endpoint expects.
 	//
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:MinLength=1
