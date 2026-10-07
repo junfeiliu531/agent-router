@@ -393,16 +393,13 @@ type BackendSecurityPolicyOpenAICredentials struct {
 }
 
 // BackendSecurityPolicyTokenExchange specifies an OAuth 2.0 Token Exchange (RFC 8693) request.
-// The controller obtains a subject token from exactly one source (oidcExchangeToken or spiffeJWTSVID),
-// exchanges it at TokenURL for an access token, and stores the access token in a secret,
-// rotating it before it expires.
+// The controller obtains a subject token, exchanges it at TokenURL for an access token,
+// and stores the access token in a secret, rotating it before it expires.
 //
 // TokenURL, SubjectTokenType, Audience and Scopes are parameters of the exchange request and apply
-// to either subject token source.
+// to any subject token source.
 //
 // https://datatracker.ietf.org/doc/html/rfc8693
-//
-// +kubebuilder:validation:XValidation:rule="has(self.oidcExchangeToken) != has(self.spiffeJWTSVID)",message="Exactly one of oidcExchangeToken or spiffeJWTSVID must be specified"
 type BackendSecurityPolicyTokenExchange struct {
 	// TokenURL is the token exchange endpoint.
 	//
@@ -432,6 +429,17 @@ type BackendSecurityPolicyTokenExchange struct {
 	// +kubebuilder:validation:MaxItems=16
 	Scopes []string `json:"scopes,omitempty"`
 
+	// SubjectToken specifies where the subject token is obtained from.
+	//
+	// +kubebuilder:validation:Required
+	SubjectToken BackendSecurityPolicySubjectToken `json:"subjectToken"`
+}
+
+// BackendSecurityPolicySubjectToken specifies the source of a subject token.
+// Exactly one source must be configured.
+//
+// +kubebuilder:validation:XValidation:rule="[has(self.oidcExchangeToken), has(self.spiffeJWTSVID)].filter(x, x).size() == 1",message="Exactly one of oidcExchangeToken or spiffeJWTSVID must be specified"
+type BackendSecurityPolicySubjectToken struct {
 	// OIDCExchangeToken obtains the subject token from an OIDC provider via the client-credentials flow.
 	//
 	// +optional

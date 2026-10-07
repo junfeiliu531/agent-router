@@ -3161,6 +3161,7 @@ MCPRouteList contains a list of MCPRoute.
 - [BackendSecurityPolicySPIFFEJWTSVID](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyspiffejwtsvid)
 - [BackendSecurityPolicySpec](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyspec)
 - [BackendSecurityPolicyStatus](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicystatus)
+- [BackendSecurityPolicySubjectToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicysubjecttoken)
 - [BackendSecurityPolicyTokenExchange](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicytokenexchange)
 - [BackendSecurityPolicyType](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicytype)
 - [CredentialOverrideFromDynamicMetadata](#github-com-envoyproxy-ai-gateway-api-v1beta1-credentialoverridefromdynamicmetadata)
@@ -3851,7 +3852,7 @@ default service account credentials when running on GCP.
 **Appears in:**
 - [AWSOIDCExchangeToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-awsoidcexchangetoken)
 - [AzureOIDCExchangeToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-azureoidcexchangetoken)
-- [BackendSecurityPolicyTokenExchange](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicytokenexchange)
+- [BackendSecurityPolicySubjectToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicysubjecttoken)
 - [GCPOIDCExchangeToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-gcpoidcexchangetoken)
 - [GCPWorkloadIdentityProvider](#github-com-envoyproxy-ai-gateway-api-v1beta1-gcpworkloadidentityprovider)
 
@@ -3915,7 +3916,7 @@ BackendSecurityPolicyOpenAICredentials contains the supported authentication mec
 
 
 **Appears in:**
-- [BackendSecurityPolicyTokenExchange](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicytokenexchange)
+- [BackendSecurityPolicySubjectToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicysubjecttoken)
 
 BackendSecurityPolicySPIFFEJWTSVID specifies how to obtain a JWT-SVID from the SPIFFE Workload API.
 
@@ -4026,6 +4027,33 @@ BackendSecurityPolicyStatus contains the conditions by the reconciliation result
 />
 
 
+#### <a id="github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicysubjecttoken">BackendSecurityPolicySubjectToken</a>
+
+
+
+**Appears in:**
+- [BackendSecurityPolicyTokenExchange](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicytokenexchange)
+
+BackendSecurityPolicySubjectToken specifies the source of a subject token.
+Exactly one source must be configured.
+
+##### Fields
+
+
+
+<ApiField
+  name="oidcExchangeToken"
+  type="[BackendSecurityPolicyOIDC](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyoidc)"
+  required="false"
+  description="OIDCExchangeToken obtains the subject token from an OIDC provider via the client-credentials flow."
+/><ApiField
+  name="spiffeJWTSVID"
+  type="[BackendSecurityPolicySPIFFEJWTSVID](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyspiffejwtsvid)"
+  required="false"
+  description="SPIFFEJWTSVID obtains the subject token as a JWT-SVID from the SPIFFE Workload API."
+/>
+
+
 #### <a id="github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicytokenexchange">BackendSecurityPolicyTokenExchange</a>
 
 
@@ -4034,12 +4062,11 @@ BackendSecurityPolicyStatus contains the conditions by the reconciliation result
 - [BackendSecurityPolicyOpenAICredentials](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyopenaicredentials)
 
 BackendSecurityPolicyTokenExchange specifies an OAuth 2.0 Token Exchange (RFC 8693) request.
-The controller obtains a subject token from exactly one source (oidcExchangeToken or spiffeJWTSVID),
-exchanges it at TokenURL for an access token, and stores the access token in a secret,
-rotating it before it expires.
+The controller obtains a subject token, exchanges it at TokenURL for an access token,
+and stores the access token in a secret, rotating it before it expires.
 
 TokenURL, SubjectTokenType, Audience and Scopes are parameters of the exchange request and apply
-to either subject token source.
+to any subject token source.
 
 https://datatracker.ietf.org/doc/html/rfc8693
 
@@ -4069,15 +4096,10 @@ https://datatracker.ietf.org/doc/html/rfc8693
   required="false"
   description="Scopes is the list of scopes requested for the exchanged access token. They are unrelated to<br />the scopes requested from the OIDC provider for the subject token."
 /><ApiField
-  name="oidcExchangeToken"
-  type="[BackendSecurityPolicyOIDC](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyoidc)"
-  required="false"
-  description="OIDCExchangeToken obtains the subject token from an OIDC provider via the client-credentials flow."
-/><ApiField
-  name="spiffeJWTSVID"
-  type="[BackendSecurityPolicySPIFFEJWTSVID](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyspiffejwtsvid)"
-  required="false"
-  description="SPIFFEJWTSVID obtains the subject token as a JWT-SVID from the SPIFFE Workload API."
+  name="subjectToken"
+  type="[BackendSecurityPolicySubjectToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicysubjecttoken)"
+  required="true"
+  description="SubjectToken specifies where the subject token is obtained from."
 />
 
 

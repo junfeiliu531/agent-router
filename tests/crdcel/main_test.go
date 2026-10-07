@@ -255,7 +255,7 @@ func TestBackendSecurityPolicies(t *testing.T) {
 		},
 		{
 			name:   "openai_invalid_socket_path.yaml",
-			expErr: "spec.openAICredentials.tokenExchange.spiffeJWTSVID.socketPath in body should match",
+			expErr: "spec.openAICredentials.tokenExchange.subjectToken.spiffeJWTSVID.socketPath in body should match",
 		},
 		{
 			name:   "openai_with_apikey.yaml",

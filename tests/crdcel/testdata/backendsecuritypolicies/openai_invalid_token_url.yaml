@@ -13,5 +13,6 @@ spec:
   openAICredentials:
     tokenExchange:
       tokenURL: not a url
-      spiffeJWTSVID:
-        audience: https://auth.example.com
+      subjectToken:
+        spiffeJWTSVID:
+          audience: https://auth.example.com

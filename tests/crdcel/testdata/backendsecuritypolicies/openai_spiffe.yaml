@@ -18,6 +18,7 @@ spec:
       audience: https://api.openai.com
       scopes:
         - api.model.read
-      spiffeJWTSVID:
-        audience: https://auth.example.com
-        socketPath: unix:///run/spire/sockets/agent.sock
+      subjectToken:
+        spiffeJWTSVID:
+          audience: https://auth.example.com
+          socketPath: unix:///run/spire/sockets/agent.sock
