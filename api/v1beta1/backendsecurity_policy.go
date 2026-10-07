@@ -432,12 +432,12 @@ type BackendSecurityPolicyTokenExchange struct {
 // BackendSecurityPolicySubjectToken specifies the source of a subject token.
 // Exactly one source must be configured.
 //
-// +kubebuilder:validation:XValidation:rule="has(self.oidc) != has(self.spiffe)",message="Exactly one of oidc or spiffe must be specified"
+// +kubebuilder:validation:XValidation:rule="has(self.oidcExchangeToken) != has(self.spiffe)",message="Exactly one of oidcExchangeToken or spiffe must be specified"
 type BackendSecurityPolicySubjectToken struct {
-	// OIDC obtains the subject token via an OIDC client-credentials flow.
+	// OIDCExchangeToken obtains the subject token via an OIDC client-credentials flow.
 	//
 	// +optional
-	OIDC *egv1a1.OIDC `json:"oidc,omitempty"`
+	OIDCExchangeToken *BackendSecurityPolicyOIDC `json:"oidcExchangeToken,omitempty"`
 
 	// SPIFFE obtains the subject token as a JWT-SVID from the SPIFFE Workload API.
 	//

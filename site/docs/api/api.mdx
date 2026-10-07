@@ -3852,6 +3852,7 @@ default service account credentials when running on GCP.
 **Appears in:**
 - [AWSOIDCExchangeToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-awsoidcexchangetoken)
 - [AzureOIDCExchangeToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-azureoidcexchangetoken)
+- [BackendSecurityPolicySubjectToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicysubjecttoken)
 - [GCPOIDCExchangeToken](#github-com-envoyproxy-ai-gateway-api-v1beta1-gcpoidcexchangetoken)
 - [GCPWorkloadIdentityProvider](#github-com-envoyproxy-ai-gateway-api-v1beta1-gcpworkloadidentityprovider)
 
@@ -4041,10 +4042,10 @@ Exactly one source must be configured.
 
 
 <ApiField
-  name="oidc"
-  type="[OIDC](https://gateway.envoyproxy.io/docs/api/extension_types/#oidc)"
+  name="oidcExchangeToken"
+  type="[BackendSecurityPolicyOIDC](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyoidc)"
   required="false"
-  description="OIDC obtains the subject token via an OIDC client-credentials flow."
+  description="OIDCExchangeToken obtains the subject token via an OIDC client-credentials flow."
 /><ApiField
   name="spiffe"
   type="[BackendSecurityPolicySPIFFE](#github-com-envoyproxy-ai-gateway-api-v1beta1-backendsecuritypolicyspiffe)"

@@ -16,9 +16,10 @@ spec:
       subjectToken:
         spiffe:
           audience: https://auth.example.com
-        oidc:
-          provider:
-            issuer: https://placeholder
-          clientID: placeholder
-          clientSecret:
-            name: placeholder
+        oidcExchangeToken:
+          oidc:
+            provider:
+              issuer: https://placeholder
+            clientID: placeholder
+            clientSecret:
+              name: placeholder

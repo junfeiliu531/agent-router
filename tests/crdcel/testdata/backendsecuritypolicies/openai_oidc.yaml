@@ -15,9 +15,10 @@ spec:
       tokenURL: https://auth.example.com/oauth/token
       subjectTokenType: urn:ietf:params:oauth:token-type:access_token
       subjectToken:
-        oidc:
-          provider:
-            issuer: https://placeholder
-          clientID: placeholder
-          clientSecret:
-            name: placeholder
+        oidcExchangeToken:
+          oidc:
+            provider:
+              issuer: https://placeholder
+            clientID: placeholder
+            clientSecret:
+              name: placeholder
