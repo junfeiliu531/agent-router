@@ -399,6 +399,11 @@ type BackendSecurityPolicyOpenAICredentials struct {
 // TokenURL, SubjectTokenType, Audience and Scopes are parameters of the exchange request and apply
 // to any subject token source.
 //
+// Each hop has its own audience:
+//   - subjectToken.spiffeJWTSVID.audience: the "aud" claim of the JWT-SVID, i.e. the token exchange endpoint.
+//   - subjectToken.oidcExchangeToken.aud: the audience requested from the OIDC provider for the subject token.
+//   - audience: the service the exchanged access token is intended for, e.g. the OpenAI API.
+//
 // https://datatracker.ietf.org/doc/html/rfc8693
 type BackendSecurityPolicyTokenExchange struct {
 	// TokenURL is the token exchange endpoint.
