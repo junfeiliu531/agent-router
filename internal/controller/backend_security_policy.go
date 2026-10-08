@@ -275,7 +275,15 @@ func (c *BackendSecurityPolicyController) rotateCredential(ctx context.Context, 
 		}
 
 	case aigv1b1.BackendSecurityPolicyTypeOpenAICredentials:
-		return ctrl.Result{}, fmt.Errorf("backend security type %s is not yet supported", bsp.Spec.Type)
+		var provider tokenprovider.TokenProvider
+		provider, err = c.newOpenAITokenProvider(ctx, bsp)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
+		rotator, err = rotators.NewOpenAITokenRotator(c.client, c.kube, c.logger, bsp.Namespace, bsp.Name, preRotationWindow, provider)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 	default:
 		err = fmt.Errorf("backend security type %s does not support OIDC token exchange", bsp.Spec.Type)
 		c.logger.Error(err, "unsupported backend security type", "namespace", bsp.Namespace, "name", bsp.Name)
@@ -342,6 +350,33 @@ func (c *BackendSecurityPolicyController) executeRotation(ctx context.Context, r
 	return ctrl.Result{RequeueAfter: requeue}, err
 }
 
+// newOpenAITokenProvider returns a TokenProvider that exchanges the configured subject token for an
+// OpenAI access token.
+func (c *BackendSecurityPolicyController) newOpenAITokenProvider(ctx context.Context, bsp *aigv1b1.BackendSecurityPolicy) (tokenprovider.TokenProvider, error) {
+	exchange := &bsp.Spec.OpenAICredentials.TokenExchange
+	var subjectTokens tokenprovider.TokenProvider
+	var err error
+	switch {
+	case exchange.SubjectToken.SPIFFEJWTSVID != nil:
+		svid := exchange.SubjectToken.SPIFFEJWTSVID
+		subjectTokens, err = tokenprovider.NewSPIFFETokenProvider(svid.SocketPath, svid.Audience)
+	case exchange.SubjectToken.OIDCExchangeToken != nil:
+		subjectTokens, err = tokenprovider.NewOidcTokenProvider(ctx, c.client, &exchange.SubjectToken.OIDCExchangeToken.OIDC,
+			bsp.Namespace, c.referenceGrantValidator.validateSecretReference)
+	default:
+		return nil, fmt.Errorf("one of spiffeJWTSVID or oidcExchangeToken must be defined, namespace %s name %s", bsp.Namespace, bsp.Name)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize subject token provider: %w", err)
+	}
+	return tokenprovider.NewTokenExchangeProvider(tokenprovider.TokenExchangeConfig{
+		TokenURL:         exchange.TokenURL,
+		SubjectTokenType: exchange.SubjectTokenType,
+		Audience:         exchange.Audience,
+		Scopes:           exchange.Scopes,
+	}, subjectTokens)
+}
+
 // getBackendSecurityPolicyAuthOIDC returns the backendSecurityPolicy's OIDC pointer or nil.
 func getBackendSecurityPolicyAuthOIDC(spec *aigv1b1.BackendSecurityPolicySpec) *egv1a1.OIDC {
 	switch spec.Type {
@@ -357,6 +392,10 @@ func getBackendSecurityPolicyAuthOIDC(spec *aigv1b1.BackendSecurityPolicySpec) *
 	case aigv1b1.BackendSecurityPolicyTypeGCPCredentials:
 		if spec.GCPCredentials != nil && spec.GCPCredentials.WorkloadIdentityFederationConfig != nil {
 			return &spec.GCPCredentials.WorkloadIdentityFederationConfig.OIDCExchangeToken.OIDC
+		}
+	case aigv1b1.BackendSecurityPolicyTypeOpenAICredentials:
+		if spec.OpenAICredentials != nil && spec.OpenAICredentials.TokenExchange.SubjectToken.OIDCExchangeToken != nil {
+			return &spec.OpenAICredentials.TokenExchange.SubjectToken.OIDCExchangeToken.OIDC
 		}
 	}
 	return nil
@@ -472,7 +511,7 @@ func getBSPGeneratedSecretName(bsp *aigv1b1.BackendSecurityPolicy) string {
 		aigv1b1.BackendSecurityPolicyTypeAnthropicAPIKey:
 		return "" // APIKey does not require rotation.
 	case aigv1b1.BackendSecurityPolicyTypeOpenAICredentials:
-		return "" // Not yet supported, so no secret is generated.
+		// The exchanged access token is always stored in a generated secret.
 	default:
 		panic("BUG: unsupported backend security policy type: " + string(bsp.Spec.Type))
 	}

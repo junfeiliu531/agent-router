@@ -505,6 +505,7 @@ type CredentialOverrideFromRequestHeaders struct {
 	//   AzureAPIKey     → x-aigw-azure-api-key
 	//   AzureCredentials → x-aigw-azure-access-token
 	//   GCPCredentials  → x-aigw-gcp-access-token
+	//   OpenAICredentials → x-aigw-openai-access-token
 	//
 	// For AWSCredentials this is a prefix, not a single header name, since SigV4 needs three
 	// inputs. Defaults to "x-aigw-aws-", yielding:
