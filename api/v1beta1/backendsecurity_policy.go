@@ -451,6 +451,8 @@ type BackendSecurityPolicySubjectToken struct {
 	OIDCExchangeToken *BackendSecurityPolicyOIDC `json:"oidcExchangeToken,omitempty"`
 
 	// SPIFFEJWTSVID obtains the subject token as a JWT-SVID from the SPIFFE Workload API.
+	// The JWT-SVID is issued for the controller's SPIFFE ID, so every policy using this source acts as
+	// the controller; only trusted cluster admins should be allowed to create such policies.
 	//
 	// +optional
 	SPIFFEJWTSVID *BackendSecurityPolicySPIFFEJWTSVID `json:"spiffeJWTSVID,omitempty"`
