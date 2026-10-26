@@ -34,6 +34,7 @@ import (
 	aigv1b1 "github.com/envoyproxy/ai-gateway/api/v1beta1"
 	"github.com/envoyproxy/ai-gateway/internal/controller"
 	"github.com/envoyproxy/ai-gateway/internal/controller/rotators"
+	"github.com/envoyproxy/ai-gateway/internal/controller/tokenprovider"
 	"github.com/envoyproxy/ai-gateway/internal/json"
 	internaltesting "github.com/envoyproxy/ai-gateway/internal/testing"
 	testsinternal "github.com/envoyproxy/ai-gateway/tests/internal"
@@ -67,6 +68,9 @@ func TestBackendSecurityPolicyController_OpenAICredentialsSPIFFE(t *testing.T) {
 		_, _ = w.Write([]byte(`{"access_token":"openai-access-token","token_type":"Bearer","expires_in":3600}`))
 	}))
 	t.Cleanup(exchangeServer.Close)
+	origTokenURL := tokenprovider.OpenAITokenExchangeURL
+	tokenprovider.OpenAITokenExchangeURL = exchangeServer.URL
+	t.Cleanup(func() { tokenprovider.OpenAITokenExchangeURL = origTokenURL })
 
 	eventCh := internaltesting.NewControllerEventChan[*aigv1b1.AIServiceBackend]()
 	eventChPool := internaltesting.NewControllerEventChan[*gwaiev1.InferencePool]()
@@ -89,7 +93,6 @@ func TestBackendSecurityPolicyController_OpenAICredentialsSPIFFE(t *testing.T) {
 				WorkloadIdentityFederationConfig: aigv1b1.OpenAIWorkloadIdentityFederationConfig{
 					IdentityProviderID: "idp_123",
 					ServiceAccountID:   "sa_456",
-					TokenURL:           exchangeServer.URL,
 					SubjectToken: aigv1b1.OpenAISubjectToken{
 						SPIFFEJWTSVID: &aigv1b1.BackendSecurityPolicySPIFFEJWTSVID{
 							Audience:   "https://api.openai.com",

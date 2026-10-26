@@ -33,6 +33,11 @@ const (
 	OpenAIProxyEnvVar = "AI_GATEWAY_OPENAI_PROXY_URL"
 )
 
+// OpenAITokenExchangeURL is the OpenAI token exchange endpoint. It is not configurable through the API so that
+// policies cannot direct the controller to send subject tokens to arbitrary URLs. It is a variable only so
+// tests can point it at a local server.
+var OpenAITokenExchangeURL = "https://auth.openai.com/oauth/token"
+
 // OpenAIWorkloadIdentityConfig holds the parameters of an OpenAI Workload Identity Federation token exchange.
 type OpenAIWorkloadIdentityConfig struct {
 	// TokenURL is the OpenAI token exchange endpoint.

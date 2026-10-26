@@ -372,7 +372,7 @@ func (c *BackendSecurityPolicyController) newOpenAITokenProvider(ctx context.Con
 		return nil, fmt.Errorf("failed to initialize subject token provider: %w", err)
 	}
 	return tokenprovider.NewOpenAIWorkloadIdentityTokenProvider(tokenprovider.OpenAIWorkloadIdentityConfig{
-		TokenURL:           wif.TokenURL,
+		TokenURL:           tokenprovider.OpenAITokenExchangeURL,
 		IdentityProviderID: wif.IdentityProviderID,
 		ServiceAccountID:   wif.ServiceAccountID,
 	}, subjectTokens)

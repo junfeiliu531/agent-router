@@ -16,7 +16,6 @@ spec:
     workloadIdentityFederationConfig:
       identityProviderID: idp_placeholder
       serviceAccountID: sa_placeholder
-      tokenURL: https://auth.openai.com/oauth/token
       subjectToken:
         spiffeJWTSVID:
           audience: https://api.openai.com

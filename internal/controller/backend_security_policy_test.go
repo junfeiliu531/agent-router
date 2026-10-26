@@ -40,6 +40,7 @@ import (
 
 	aigv1b1 "github.com/envoyproxy/ai-gateway/api/v1beta1"
 	"github.com/envoyproxy/ai-gateway/internal/controller/rotators"
+	"github.com/envoyproxy/ai-gateway/internal/controller/tokenprovider"
 	"github.com/envoyproxy/ai-gateway/internal/json"
 	internaltesting "github.com/envoyproxy/ai-gateway/internal/testing"
 )
@@ -884,6 +885,10 @@ func TestBackendSecurityPolicyController_RotateCredential_OpenAICredentials_OIDC
 		_, _ = w.Write([]byte(`{"access_token": "openai-access-token", "token_type": "Bearer", "expires_in": 3600}`))
 	})
 
+	origTokenURL := tokenprovider.OpenAITokenExchangeURL
+	tokenprovider.OpenAITokenExchangeURL = server.URL + "/exchange"
+	t.Cleanup(func() { tokenprovider.OpenAITokenExchangeURL = origTokenURL })
+
 	eventCh := internaltesting.NewControllerEventChan[*aigv1b1.AIServiceBackend]()
 	cl := fake.NewClientBuilder().WithScheme(Scheme).Build()
 	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, eventCh.Ch, nil)
@@ -899,7 +904,6 @@ func TestBackendSecurityPolicyController_RotateCredential_OpenAICredentials_OIDC
 			Type: aigv1b1.BackendSecurityPolicyTypeOpenAICredentials,
 			OpenAICredentials: &aigv1b1.BackendSecurityPolicyOpenAICredentials{
 				WorkloadIdentityFederationConfig: aigv1b1.OpenAIWorkloadIdentityFederationConfig{
-					TokenURL:           server.URL + "/exchange",
 					IdentityProviderID: "idp_123",
 					ServiceAccountID:   "sa_456",
 					SubjectToken: aigv1b1.OpenAISubjectToken{
@@ -946,7 +950,6 @@ func TestBackendSecurityPolicyController_Reconcile_OpenAICredentials_SPIFFEUnava
 			Type: aigv1b1.BackendSecurityPolicyTypeOpenAICredentials,
 			OpenAICredentials: &aigv1b1.BackendSecurityPolicyOpenAICredentials{
 				WorkloadIdentityFederationConfig: aigv1b1.OpenAIWorkloadIdentityFederationConfig{
-					TokenURL:           "https://auth.openai.com/oauth/token",
 					IdentityProviderID: "idp_123",
 					ServiceAccountID:   "sa_456",
 					SubjectToken: aigv1b1.OpenAISubjectToken{

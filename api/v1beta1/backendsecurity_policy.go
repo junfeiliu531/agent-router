@@ -377,8 +377,8 @@ type BackendSecurityPolicyOpenAICredentials struct {
 }
 
 // OpenAIWorkloadIdentityFederationConfig specifies how the controller obtains an OpenAI access token via
-// OpenAI Workload Identity Federation. The controller obtains a subject token, exchanges it at TokenURL for
-// a short-lived OpenAI access token, and stores the access token in a secret, rotating it before it expires.
+// OpenAI Workload Identity Federation. The controller obtains a subject token, exchanges it at
+// https://auth.openai.com/oauth/token for a short-lived OpenAI access token, and stores the access token in a secret, rotating it before it expires.
 //
 // The identity provider and service account mapping must be configured in the OpenAI organization, with the
 // issuer and audience of the subject token.
@@ -398,13 +398,6 @@ type OpenAIWorkloadIdentityFederationConfig struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:MinLength=1
 	ServiceAccountID string `json:"serviceAccountID"`
-
-	// TokenURL is the OpenAI token exchange endpoint.
-	//
-	// +optional
-	// +kubebuilder:default="https://auth.openai.com/oauth/token"
-	// +kubebuilder:validation:XValidation:rule="isURL(self)",message="tokenURL must be a valid URL"
-	TokenURL string `json:"tokenURL,omitempty"`
 
 	// SubjectToken specifies where the subject token is obtained from. The subject token must be a JWT.
 	//
