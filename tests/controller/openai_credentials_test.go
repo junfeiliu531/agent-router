@@ -10,6 +10,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -65,7 +66,7 @@ func TestBackendSecurityPolicyController_OpenAICredentialsSPIFFE(t *testing.T) {
 		gotBody = body
 		mu.Unlock()
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"access_token":"openai-access-token","token_type":"Bearer","expires_in":3600}`))
+		_, _ = fmt.Fprintf(w, `{"access_token":"openai-access-token","token_type":"Bearer","expires_in":3600,"expires_at":%d}`, time.Now().Add(time.Hour).Unix())
 	}))
 	t.Cleanup(exchangeServer.Close)
 	origTokenURL := tokenprovider.OpenAITokenExchangeURL

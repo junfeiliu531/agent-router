@@ -882,7 +882,7 @@ func TestBackendSecurityPolicyController_RotateCredential_OpenAICredentials_OIDC
 	mux.HandleFunc("/exchange", func(w http.ResponseWriter, r *http.Request) {
 		require.NoError(t, json.NewDecoder(r.Body).Decode(&gotBody))
 		w.Header().Add("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"access_token": "openai-access-token", "token_type": "Bearer", "expires_in": 3600}`))
+		_, _ = fmt.Fprintf(w, `{"access_token": "openai-access-token", "token_type": "Bearer", "expires_in": 3600, "expires_at": %d}`, time.Now().Add(time.Hour).Unix())
 	})
 
 	origTokenURL := tokenprovider.OpenAITokenExchangeURL

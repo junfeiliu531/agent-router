@@ -16,8 +16,6 @@ import (
 	"os"
 	"time"
 
-	"sigs.k8s.io/controller-runtime/pkg/log"
-
 	"github.com/envoyproxy/ai-gateway/internal/json"
 )
 
@@ -36,7 +34,7 @@ const (
 // OpenAITokenExchangeURL is the OpenAI token exchange endpoint. It is not configurable through the API so that
 // policies cannot direct the controller to send subject tokens to arbitrary URLs. It is a variable only so
 // tests can point it at a local server.
-var OpenAITokenExchangeURL = "https://auth.openai.com/oauth/token"
+var OpenAITokenExchangeURL = "https://auth.openai.com/oauth/token" // #nosec G101
 
 // OpenAIWorkloadIdentityConfig holds the parameters of an OpenAI Workload Identity Federation token exchange.
 type OpenAIWorkloadIdentityConfig struct {
@@ -68,8 +66,6 @@ type openAITokenExchangeRequest struct {
 // openAITokenExchangeResponse is the successful response of an OpenAI token exchange.
 type openAITokenExchangeResponse struct {
 	AccessToken string `json:"access_token"`
-	// ExpiresIn is the lifetime of the access token in seconds.
-	ExpiresIn int64 `json:"expires_in"`
 	// ExpiresAt is the expiration time of the access token in Unix seconds.
 	ExpiresAt int64 `json:"expires_at"`
 }
@@ -126,8 +122,7 @@ func newOpenAITransport() (http.RoundTripper, error) {
 
 // GetToken implements TokenProvider.GetToken method to retrieve an OpenAI access token and its expiration time.
 //
-// The expiration time is taken from expires_at, then from expires_in. When the response has neither, the
-// access token is assumed to expire with the subject token.
+// The expiration time is taken from expires_at.
 func (t *openAIWorkloadIdentityTokenProvider) GetToken(ctx context.Context) (TokenExpiry, error) {
 	subject, err := t.subjectTokens.GetToken(ctx)
 	if err != nil {
@@ -151,7 +146,6 @@ func (t *openAIWorkloadIdentityTokenProvider) GetToken(ctx context.Context) (Tok
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
-	issuedAt := time.Now()
 	resp, err := t.httpClient.Do(req)
 	if err != nil {
 		return TokenExpiry{}, fmt.Errorf("failed to send token exchange request: %w", err)
@@ -181,19 +175,8 @@ func (t *openAIWorkloadIdentityTokenProvider) GetToken(ctx context.Context) (Tok
 	if tokenResp.AccessToken == "" {
 		return TokenExpiry{}, errors.New("token exchange response has no access_token")
 	}
-	expiresAt, expirySource := subject.ExpiresAt, "subject_token"
-	switch {
-	case tokenResp.ExpiresAt > 0:
-		expiresAt, expirySource = time.Unix(tokenResp.ExpiresAt, 0), "expires_at"
-	case tokenResp.ExpiresIn > 0:
-		expiresAt, expirySource = issuedAt.Add(time.Duration(tokenResp.ExpiresIn)*time.Second), "expires_in"
+	if tokenResp.ExpiresAt <= 0 {
+		return TokenExpiry{}, errors.New("token exchange response has no expires_at")
 	}
-	log.FromContext(ctx).Info("OpenAI token exchange expiry",
-		"expirySource", expirySource,
-		"subjectExpiresAt", subject.ExpiresAt,
-		"issuedAt", issuedAt,
-		"respExpiresAt", tokenResp.ExpiresAt,
-		"respExpiresIn", tokenResp.ExpiresIn,
-		"expiresAt", expiresAt)
-	return TokenExpiry{Token: tokenResp.AccessToken, ExpiresAt: expiresAt}, nil
+	return TokenExpiry{Token: tokenResp.AccessToken, ExpiresAt: time.Unix(tokenResp.ExpiresAt, 0)}, nil
 }

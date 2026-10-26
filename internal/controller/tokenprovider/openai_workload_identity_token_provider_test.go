@@ -87,7 +87,7 @@ func TestOpenAIWorkloadIdentityTokenProvider_GetToken_Proxy(t *testing.T) {
 	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// A forward proxy receives the absolute request URL of the token endpoint.
 		gotHost = r.URL.Host
-		_, _ = w.Write([]byte(`{"access_token":"exchanged","expires_in":600}`))
+		_, _ = fmt.Fprintf(w, `{"access_token":"exchanged","expires_in":600,"expires_at":%d}`, time.Now().Add(10*time.Minute).Unix())
 	}))
 	defer proxy.Close()
 	t.Setenv(OpenAIProxyEnvVar, proxy.URL)
@@ -135,36 +135,6 @@ func TestOpenAIWorkloadIdentityTokenProvider_GetToken(t *testing.T) {
 		}, gotBody)
 	})
 
-	t.Run("no expires_at uses expires_in", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			_, _ = w.Write([]byte(`{"access_token":"exchanged","expires_in":600}`))
-		}))
-		defer server.Close()
-
-		provider, err := NewOpenAIWorkloadIdentityTokenProvider(testOpenAIWorkloadIdentityConfig(server.URL),
-			NewMockTokenProvider("subject", subjectExpiry, nil))
-		require.NoError(t, err)
-		before := time.Now()
-		token, err := provider.GetToken(t.Context())
-		require.NoError(t, err)
-		require.Equal(t, "exchanged", token.Token)
-		require.WithinRange(t, token.ExpiresAt, before.Add(600*time.Second), time.Now().Add(600*time.Second))
-	})
-
-	t.Run("no expires_at or expires_in uses subject token expiry", func(t *testing.T) {
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-			_, _ = w.Write([]byte(`{"access_token":"exchanged"}`))
-		}))
-		defer server.Close()
-
-		provider, err := NewOpenAIWorkloadIdentityTokenProvider(testOpenAIWorkloadIdentityConfig(server.URL),
-			NewMockTokenProvider("subject", subjectExpiry, nil))
-		require.NoError(t, err)
-		token, err := provider.GetToken(t.Context())
-		require.NoError(t, err)
-		require.Equal(t, TokenExpiry{Token: "exchanged", ExpiresAt: subjectExpiry}, token)
-	})
-
 	t.Run("subject token error", func(t *testing.T) {
 		provider, err := NewOpenAIWorkloadIdentityTokenProvider(testOpenAIWorkloadIdentityConfig("http://127.0.0.1:0"),
 			NewMockTokenProvider("", time.Time{}, errors.New("workload API unavailable")))
@@ -206,8 +176,14 @@ func TestOpenAIWorkloadIdentityTokenProvider_GetToken(t *testing.T) {
 		{
 			name:   "missing access token",
 			status: http.StatusOK,
-			body:   `{"expires_in":600}`,
+			body:   `{"expires_in":600,"expires_at":1793053844}`,
 			expErr: "token exchange response has no access_token",
+		},
+		{
+			name:   "missing expires_at",
+			status: http.StatusOK,
+			body:   `{"access_token":"exchanged","expires_in":600}`,
+			expErr: "token exchange response has no expires_at",
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
