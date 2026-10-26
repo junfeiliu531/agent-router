@@ -16,6 +16,8 @@ import (
 	"os"
 	"time"
 
+	"sigs.k8s.io/controller-runtime/pkg/log"
+
 	"github.com/envoyproxy/ai-gateway/internal/json"
 )
 
@@ -174,12 +176,19 @@ func (t *openAIWorkloadIdentityTokenProvider) GetToken(ctx context.Context) (Tok
 	if tokenResp.AccessToken == "" {
 		return TokenExpiry{}, errors.New("token exchange response has no access_token")
 	}
-	expiresAt := subject.ExpiresAt
+	expiresAt, expirySource := subject.ExpiresAt, "subject_token"
 	switch {
 	case tokenResp.ExpiresAt > 0:
-		expiresAt = time.Unix(tokenResp.ExpiresAt, 0)
+		expiresAt, expirySource = time.Unix(tokenResp.ExpiresAt, 0), "expires_at"
 	case tokenResp.ExpiresIn > 0:
-		expiresAt = issuedAt.Add(time.Duration(tokenResp.ExpiresIn) * time.Second)
+		expiresAt, expirySource = issuedAt.Add(time.Duration(tokenResp.ExpiresIn)*time.Second), "expires_in"
 	}
+	log.FromContext(ctx).Info("OpenAI token exchange expiry",
+		"expirySource", expirySource,
+		"subjectExpiresAt", subject.ExpiresAt,
+		"issuedAt", issuedAt,
+		"respExpiresAt", tokenResp.ExpiresAt,
+		"respExpiresIn", tokenResp.ExpiresIn,
+		"expiresAt", expiresAt)
 	return TokenExpiry{Token: tokenResp.AccessToken, ExpiresAt: expiresAt}, nil
 }
