@@ -282,7 +282,7 @@ func (c *BackendSecurityPolicyController) rotateCredential(ctx context.Context, 
 		if err != nil {
 			return ctrl.Result{}, err
 		}
-		rotator, err = rotators.NewOpenAITokenRotator(c.client, c.kube, c.logger, bsp.Namespace, bsp.Name, preRotationWindow, provider)
+		rotator, err = rotators.NewOpenAITokenRotator(c.client, c.kube, c.logger, bsp.Namespace, bsp.Name, c.preRotationWindow, provider)
 		if err != nil {
 			return ctrl.Result{}, err
 		}

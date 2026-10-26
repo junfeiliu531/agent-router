@@ -79,7 +79,7 @@ func TestBackendSecurityPolicyController_OpenAICredentialsSPIFFE(t *testing.T) {
 	mgr, err := ctrl.NewManager(cfg, opt)
 	require.NoError(t, err)
 	require.NoError(t, controller.ApplyIndexing(t.Context(), mgr.GetFieldIndexer().IndexField))
-	pc := controller.NewBackendSecurityPolicyController(mgr.GetClient(), k, defaultLogger(), eventCh.Ch, eventChPool.Ch)
+	pc := controller.NewBackendSecurityPolicyController(mgr.GetClient(), k, defaultLogger(), eventCh.Ch, eventChPool.Ch, controller.DefaultPreRotationWindow)
 	require.NoError(t, controller.TypedControllerBuilderForCRD(mgr, &aigv1b1.BackendSecurityPolicy{}).Complete(pc))
 	go func() { require.NoError(t, mgr.Start(t.Context())) }()
 	require.True(t, mgr.GetCache().WaitForCacheSync(t.Context()))

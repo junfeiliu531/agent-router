@@ -891,7 +891,7 @@ func TestBackendSecurityPolicyController_RotateCredential_OpenAICredentials_OIDC
 
 	eventCh := internaltesting.NewControllerEventChan[*aigv1b1.AIServiceBackend]()
 	cl := fake.NewClientBuilder().WithScheme(Scheme).Build()
-	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, eventCh.Ch, nil)
+	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, eventCh.Ch, nil, DefaultPreRotationWindow)
 	const bspNamespace = "default"
 	require.NoError(t, cl.Create(t.Context(), &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: "oidc-client-secret", Namespace: bspNamespace},
@@ -942,7 +942,7 @@ func TestBackendSecurityPolicyController_RotateCredential_OpenAICredentials_OIDC
 func TestBackendSecurityPolicyController_Reconcile_OpenAICredentials_SPIFFEUnavailable(t *testing.T) {
 	eventCh := internaltesting.NewControllerEventChan[*aigv1b1.AIServiceBackend]()
 	cl := requireNewFakeClientWithIndexes(t)
-	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, eventCh.Ch, nil)
+	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, eventCh.Ch, nil, DefaultPreRotationWindow)
 
 	bsp := &aigv1b1.BackendSecurityPolicy{
 		ObjectMeta: metav1.ObjectMeta{Name: "openai-bsp", Namespace: "default"},
@@ -977,7 +977,7 @@ func TestBackendSecurityPolicyController_Reconcile_OpenAICredentials_SPIFFEUnava
 
 func TestBackendSecurityPolicyController_RotateCredential_OpenAICredentials_NoSubjectToken(t *testing.T) {
 	cl := fake.NewClientBuilder().WithScheme(Scheme).Build()
-	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, nil, nil)
+	c := NewBackendSecurityPolicyController(cl, fake2.NewClientset(), ctrl.Log, nil, nil, DefaultPreRotationWindow)
 	bsp := &aigv1b1.BackendSecurityPolicy{
 		ObjectMeta: metav1.ObjectMeta{Name: "openai-bsp", Namespace: "default"},
 		Spec: aigv1b1.BackendSecurityPolicySpec{
